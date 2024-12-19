@@ -1,0 +1,473 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Sistema de Postagens</title>
+    <link
+      href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+    <script src="https://cdn.ckeditor.com/4.16.2/standard/ckeditor.js"></script>
+    <link
+      href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/css/select2.min.css"
+      rel="stylesheet"
+    />
+    <style>
+      .cke_notification_warning {
+        display: none !important;
+      }
+      .modal-header {
+        background-color: #0073aa;
+        color: white;
+      }
+      .modal-title {
+        font-weight: bold;
+      }
+      .modal-body {
+        padding: 20px;
+      }
+      .form-group label {
+        font-weight: bold;
+      }
+      .form-control {
+        border-radius: 0;
+      }
+      .btn-primary {
+        background-color: #0073aa;
+        border-color: #0073aa;
+      }
+      .btn-secondary {
+        background-color: #23282d;
+        border-color: #23282d;
+      }
+    </style>
+  </head>
+  <body class="container mt-5">
+    <h1 class="text-center mb-4">Sistema de Postagens</h1>
+    <button
+      class="btn btn-primary mb-4"
+      data-toggle="modal"
+      data-target="#createPostModal"
+    >
+      Incluir Post
+    </button>
+    <a href="/all-posts" class="btn btn-secondary mb-4"
+      >Ver todas as postagens</a
+    >
+    <h2 class="mb-4">Postagens</h2>
+    <div id="posts" class="list-group"></div>
+
+    <!-- Modal para criar postagem -->
+    <div
+      class="modal fade"
+      id="createPostModal"
+      tabindex="-1"
+      aria-labelledby="createPostModalLabel"
+      aria-hidden="true"
+    >
+      <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="createPostModalLabel">
+              Criar Postagem
+            </h5>
+            <button
+              type="button"
+              class="close"
+              data-dismiss="modal"
+              aria-label="Close"
+            >
+              <span aria-hidden="true">&times;</span>
+            </button>
+          </div>
+          <div class="modal-body">
+            <form id="postForm">
+              <div class="form-group">
+                <label for="title">Título</label>
+                <input
+                  type="text"
+                  id="title"
+                  class="form-control"
+                  placeholder="Título"
+                  required
+                />
+              </div>
+              <div class="form-group">
+                <label for="content">Conteúdo</label>
+                <textarea
+                  id="content"
+                  class="form-control"
+                  placeholder="Conteúdo"
+                  required
+                ></textarea>
+              </div>
+              <div class="form-group">
+                <label for="categories">Categorias</label>
+                <div class="">
+                  <select
+                    id="categories"
+                    class="form-control w-50"
+                    multiple="multiple"
+                  >
+                    <option value="uncategorized" selected>
+                      Uncategorized
+                    </option>
+                  </select>
+                  <input
+                    type="text"
+                    id="newCategory"
+                    class="form-control ml-2"
+                    placeholder="Adicionar nova categoria"
+                  />
+                  <button
+                    type="button"
+                    class="btn btn-secondary ml-2"
+                    onclick="addCategory()"
+                  >
+                    Adicionar Categoria
+                  </button>
+                </div>
+              </div>
+              <div class="form-group">
+                <label for="seoTitle">SEO Título</label>
+                <input
+                  type="text"
+                  id="seoTitle"
+                  class="form-control"
+                  placeholder="SEO Título"
+                />
+              </div>
+              <div class="form-group">
+                <label for="seoDescription">SEO Descrição</label>
+                <textarea
+                  id="seoDescription"
+                  class="form-control"
+                  placeholder="SEO Descrição"
+                ></textarea>
+              </div>
+              <div class="form-group">
+                <label for="seoKeywords">SEO Palavras-chave</label>
+                <input
+                  type="text"
+                  id="seoKeywords"
+                  class="form-control"
+                  placeholder="SEO Palavras-chave"
+                />
+              </div>
+              <button type="submit" class="btn btn-primary">
+                Criar Postagem
+              </button>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal para editar postagem -->
+    <div
+      class="modal fade"
+      id="editModal"
+      tabindex="-1"
+      aria-labelledby="editModalLabel"
+      aria-hidden="true"
+    >
+      <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="editModalLabel">Editar Postagem</h5>
+            <button
+              type="button"
+              class="close"
+              data-dismiss="modal"
+              aria-label="Close"
+            >
+              <span aria-hidden="true">&times;</span>
+            </button>
+          </div>
+          <div class="modal-body">
+            <form id="editForm">
+              <div class="form-group">
+                <label for="editTitle">Título</label>
+                <input
+                  type="text"
+                  id="editTitle"
+                  class="form-control"
+                  placeholder="Título"
+                  required
+                />
+              </div>
+              <div class="form-group">
+                <label for="editContent">Conteúdo</label>
+                <textarea
+                  id="editContent"
+                  class="form-control"
+                  placeholder="Conteúdo"
+                  required
+                ></textarea>
+              </div>
+              <div class="form-group">
+                <label for="editCategories">Categorias</label>
+                <div class="d-flex">
+                  <select
+                    id="editCategories"
+                    class="form-control w-50"
+                    multiple="multiple"
+                  >
+                    <option value="uncategorized">Uncategorized</option>
+                  </select>
+                  <input
+                    type="text"
+                    id="editNewCategory"
+                    class="form-control ml-2"
+                    placeholder="Adicionar nova categoria"
+                  />
+                  <button
+                    type="button"
+                    class="btn btn-secondary ml-2"
+                    onclick="addEditCategory()"
+                  >
+                    Adicionar Categoria
+                  </button>
+                </div>
+              </div>
+              <div class="form-group">
+                <label for="editSeoTitle">SEO Título</label>
+                <input
+                  type="text"
+                  id="editSeoTitle"
+                  class="form-control"
+                  placeholder="SEO Título"
+                />
+              </div>
+              <div class="form-group">
+                <label for="editSeoDescription">SEO Descrição</label>
+                <textarea
+                  id="editSeoDescription"
+                  class="form-control"
+                  placeholder="SEO Descrição"
+                ></textarea>
+              </div>
+              <div class="form-group">
+                <label for="editSeoKeywords">SEO Palavras-chave</label>
+                <input
+                  type="text"
+                  id="editSeoKeywords"
+                  class="form-control"
+                  placeholder="SEO Palavras-chave"
+                />
+              </div>
+              <button type="submit" class="btn btn-primary">
+                Salvar mudanças
+              </button>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.4/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/js/select2.min.js"></script>
+    <script>
+      let currentEditId = null;
+      let categories = ["uncategorized"];
+
+      // Initialize CKEditor and Select2
+      document.addEventListener("DOMContentLoaded", function () {
+        CKEDITOR.replace("content");
+        CKEDITOR.replace("editContent");
+        $("#categories").select2({
+          tags: true,
+          tokenSeparators: [",", " "],
+        });
+        $("#editCategories").select2({
+          tags: true,
+          tokenSeparators: [",", " "],
+        });
+        loadCategories();
+      });
+
+      function loadCategories() {
+        fetch("/categories")
+          .then((response) => response.json())
+          .then((data) => {
+            categories = data;
+            data.forEach((category) => {
+              const option = new Option(category, category, false, false);
+              $("#categories").append(option).trigger("change");
+              $("#editCategories").append(option).trigger("change");
+            });
+          });
+      }
+
+      function addCategory() {
+        const newCategory = document.getElementById("newCategory").value.trim();
+        if (newCategory && !categories.includes(newCategory)) {
+          categories.push(newCategory);
+          const option = new Option(newCategory, newCategory, true, true);
+          $("#categories").append(option).trigger("change");
+          document.getElementById("newCategory").value = "";
+        }
+      }
+
+      function addEditCategory() {
+        const newCategory = document
+          .getElementById("editNewCategory")
+          .value.trim();
+        if (newCategory && !categories.includes(newCategory)) {
+          categories.push(newCategory);
+          const option = new Option(newCategory, newCategory, true, true);
+          $("#editCategories").append(option).trigger("change");
+          document.getElementById("editNewCategory").value = "";
+        }
+      }
+
+      document
+        .getElementById("postForm")
+        .addEventListener("submit", async (e) => {
+          e.preventDefault();
+          const title = document.getElementById("title").value;
+          const content = CKEDITOR.instances.content.getData();
+          const seoTitle = document.getElementById("seoTitle").value;
+          const seoDescription =
+            document.getElementById("seoDescription").value;
+          const seoKeywords = document.getElementById("seoKeywords").value;
+          const selectedCategories = $("#categories").val();
+
+          const response = await fetch("/posts", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              title,
+              content,
+              seoTitle,
+              seoDescription,
+              seoKeywords,
+              categories: selectedCategories,
+            }),
+          });
+
+          const newPost = await response.json();
+          displayPost(newPost);
+
+          // Clear form fields
+          document.getElementById("title").value = "";
+          CKEDITOR.instances.content.setData("");
+          document.getElementById("seoTitle").value = "";
+          document.getElementById("seoDescription").value = "";
+          document.getElementById("seoKeywords").value = "";
+          $("#categories").val(null).trigger("change");
+
+          // Close modal
+          $("#createPostModal").modal("hide");
+        });
+
+      async function fetchPosts() {
+        const response = await fetch("/posts?page=1&limit=5");
+        const posts = await response.json();
+        if (posts.length === 0) {
+          document.getElementById("posts").innerHTML =
+            '<p class="text-center">Nenhuma postagem disponível.</p>';
+        } else {
+          posts.forEach((post) => displayPost(post));
+        }
+      }
+
+      function displayPost(post) {
+        const fileName = sanitizeTitle(post.title);
+        const postDiv = document.createElement("div");
+        postDiv.className = "list-group-item";
+        postDiv.innerHTML = `
+                <h3><a href="/posts/${fileName}-${post.id}.html">${
+          post.title
+        }</a></h3>
+                <p>${post.content.substring(0, 100)}...</p>
+                <button class="btn btn-warning btn-sm" onclick="openEditModal('${
+                  post.id
+                }')">Editar</button>
+                <button class="btn btn-danger btn-sm" onclick="confirmDeletePost('${
+                  post.id
+                }')">Deletar</button>
+            `;
+        document.getElementById("posts").appendChild(postDiv);
+      }
+
+      // Function to sanitize title
+      function sanitizeTitle(title) {
+        return title
+          .toLowerCase()
+          .normalize("NFD")
+          .replace(/[\u0300-\u036f]/g, "") // Remove accents
+          .replace(/[^a-z0-9 ]/g, "") // Remove special characters
+          .replace(/ /g, "-"); // Replace spaces with hyphens
+      }
+
+      async function deletePost(id) {
+        await fetch(`/posts/${id}`, { method: "DELETE" });
+        document.getElementById("posts").innerHTML = "";
+        fetchPosts();
+      }
+
+      function confirmDeletePost(id) {
+        if (confirm("Tem certeza que deseja deletar esta postagem?")) {
+          deletePost(id);
+        }
+      }
+
+      async function openEditModal(id) {
+        currentEditId = id;
+        const response = await fetch(`/posts/${id}/content`);
+        const post = await response.json();
+        document.getElementById("editTitle").value = post.title;
+        CKEDITOR.instances.editContent.setData(post.content);
+        document.getElementById("editSeoTitle").value = post.seo.title;
+        document.getElementById("editSeoDescription").value =
+          post.seo.description;
+        document.getElementById("editSeoKeywords").value = post.seo.keywords;
+        $("#editCategories").val(post.categories).trigger("change");
+        $("#editModal").modal("show");
+      }
+
+      document
+        .getElementById("editForm")
+        .addEventListener("submit", async (e) => {
+          e.preventDefault();
+          const title = document.getElementById("editTitle").value;
+          const content = CKEDITOR.instances.editContent.getData();
+          const seoTitle = document.getElementById("editSeoTitle").value;
+          const seoDescription =
+            document.getElementById("editSeoDescription").value;
+          const seoKeywords = document.getElementById("editSeoKeywords").value;
+          const selectedCategories = $("#editCategories").val();
+
+          await fetch(`/posts/${currentEditId}`, {
+            method: "PUT",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              title,
+              content,
+              seoTitle,
+              seoDescription,
+              seoKeywords,
+              categories: selectedCategories,
+            }),
+          });
+
+          document.getElementById("posts").innerHTML = "";
+          fetchPosts();
+          $("#editModal").modal("hide");
+        });
+
+      fetchPosts();
+    </script>
+    <footer class="text-center mt-5">
+      <p>&copy; 2023 Sistema de Postagens. Todos os direitos reservados.</p>
+    </footer>
+  </body>
+</html>

@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Todas as Postagens</title>
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body class="container mt-5">
+    <h1 class="text-center mb-4">Todas as Postagens</h1>
+    <div id="posts" class="list-group"></div>
+    <a href="/" class="btn btn-secondary mt-4">Voltar</a>
+
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.4/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <script>
+        async function fetchAllPosts() {
+            const response = await fetch('/all-posts-data');
+            const posts = await response.json();
+            if (posts.length === 0) {
+                document.getElementById('posts').innerHTML = '<p class="text-center">Nenhuma postagem disponível.</p>';
+            } else {
+                posts.forEach(post => displayPost(post));
+            }
+        }
+
+        function displayPost(post) {
+            const fileName = sanitizeTitle(post.title);
+            const postDiv = document.createElement('div');
+            postDiv.className = 'list-group-item';
+            postDiv.innerHTML = `
+                <h3><a href="/posts/${fileName}-${post.id}.html">${post.title}</a> <small class="text-muted">#${post.id}</small></h3>
+                <p>${post.content}</p>
+            `;
+            document.getElementById('posts').appendChild(postDiv);
+        }
+
+        // Function to sanitize title
+        function sanitizeTitle(title) {
+            return title
+                .toLowerCase()
+                .normalize('NFD')
+                .replace(/[\u0300-\u036f]/g, '') // Remove accents
+                .replace(/[^a-z0-9 ]/g, '') // Remove special characters
+                .replace(/ /g, '-'); // Replace spaces with hyphens
+        }
+
+        fetchAllPosts();
+    </script>
+    <footer class="text-center mt-5">
+        <p>&copy; 2023 Sistema de Postagens. Todos os direitos reservados.</p>
+    </footer>
+</body>
+</html>
