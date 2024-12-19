@@ -60,7 +60,7 @@
     >
       Incluir Post
     </button>
-    <a href="/all-posts" class="btn btn-secondary mb-4"
+    <a href="../all-posts" class="btn btn-secondary mb-4"
       >Ver todas as postagens</a
     >
     <h2 class="mb-4">Postagens</h2>
@@ -117,6 +117,7 @@
                     id="categories"
                     class="form-control"
                     multiple="multiple"
+                    required
                   >
                     <option value="uncategorized" selected>
                       Uncategorized
@@ -144,6 +145,7 @@
                   id="seoTitle"
                   class="form-control"
                   placeholder="SEO Título"
+                  required
                 />
               </div>
               <div class="form-group">
@@ -152,6 +154,7 @@
                   id="seoDescription"
                   class="form-control"
                   placeholder="SEO Descrição"
+                  required
                 ></textarea>
               </div>
               <div class="form-group">
@@ -161,11 +164,10 @@
                   id="seoKeywords"
                   class="form-control"
                   placeholder="SEO Palavras-chave"
+                  required
                 />
               </div>
-              <button type="submit" class="btn btn-primary">
-                Criar Postagem
-              </button>
+              <button type="submit" class="btn btn-primary">Criar Postagem</button>
             </form>
           </div>
         </div>
@@ -221,6 +223,7 @@
                     id="editCategories"
                     class="form-control w-50"
                     multiple="multiple"
+                    required
                   >
                     <option value="uncategorized">Uncategorized</option>
                   </select>
@@ -246,6 +249,7 @@
                   id="editSeoTitle"
                   class="form-control"
                   placeholder="SEO Título"
+                  required
                 />
               </div>
               <div class="form-group">
@@ -254,6 +258,7 @@
                   id="editSeoDescription"
                   class="form-control"
                   placeholder="SEO Descrição"
+                  required
                 ></textarea>
               </div>
               <div class="form-group">
@@ -263,12 +268,33 @@
                   id="editSeoKeywords"
                   class="form-control"
                   placeholder="SEO Palavras-chave"
+                  required
                 />
               </div>
               <button type="submit" class="btn btn-primary">
                 Salvar mudanças
               </button>
             </form>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal fade" id="deleteConfirmModal" tabindex="-1" aria-labelledby="deleteConfirmModalLabel" aria-hidden="true">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="deleteConfirmModalLabel">Confirmar Deleção</h5>
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+              <span aria-hidden="true">&times;</span>
+            </button>
+          </div>
+          <div class="modal-body">
+            Tem certeza que deseja deletar esta postagem?
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
+            <button type="button" class="btn btn-danger" id="confirmDeleteButton">Deletar</button>
           </div>
         </div>
       </div>
@@ -281,6 +307,8 @@
     <script>
       let currentEditId = null;
       let categories = ["uncategorized"];
+      let postIdToDelete = null;
+      let postsLoaded = false;
 
       // Initialize CKEditor and Select2
       document.addEventListener("DOMContentLoaded", function () {
@@ -297,6 +325,10 @@
           width: '100%' // Ensure the select box takes full width
         });
         loadCategories();
+        if (!postsLoaded) {
+          fetchPosts();
+          postsLoaded = true;
+        }
       });
 
       function loadCategories() {
@@ -352,6 +384,11 @@
           const seoKeywords = document.getElementById("seoKeywords").value;
           const selectedCategories = $("#categories").val();
 
+          if (!title || !content || !seoTitle || !seoDescription || !seoKeywords || selectedCategories.length === 0) {
+            alert("Todos os campos são obrigatórios.");
+            return;
+          }
+
           const response = await fetch("/posts", {
             method: "POST",
             headers: {
@@ -385,9 +422,12 @@
       async function fetchPosts() {
         const response = await fetch("/posts?page=1&limit=5");
         const posts = await response.json();
+
+        const postsContainer = document.getElementById("posts");
+        postsContainer.innerHTML = ""; // Clear existing posts
+
         if (posts.length === 0) {
-          document.getElementById("posts").innerHTML =
-            '<p class="text-center">Nenhuma postagem disponível.</p>';
+          postsContainer.innerHTML = '<p class="text-center">Nenhuma postagem disponível.</p>';
         } else {
           posts.forEach((post) => displayPost(post));
         }
@@ -397,18 +437,14 @@
         const fileName = sanitizeTitle(post.title);
         const postDiv = document.createElement("div");
         postDiv.className = "list-group-item";
+        const categoriesBadges = post.categories.map(category => `<span class="badge badge-info mr-1">${category}</span>`).join(" ");
         postDiv.innerHTML = `
-                <h3><a href="/posts/${fileName}-${post.id}.html">${
-          post.title
-        }</a></h3>
-                <p>${post.content.substring(0, 100)}...</p>
-                <button class="btn btn-warning btn-sm" onclick="openEditModal('${
-                  post.id
-                }')">Editar</button>
-                <button class="btn btn-danger btn-sm" onclick="confirmDeletePost('${
-                  post.id
-                }')">Deletar</button>
-            `;
+      <h3><a href="/posts/${fileName}-${post.id}.html">${post.title}</a></h3>
+      <p>${post.content.substring(0, 100)}...</p>
+      <div class="mb-2">${categoriesBadges}</div>
+      <button class="btn btn-warning btn-sm" onclick="openEditModal('${post.id}')">Editar</button>
+      <button class="btn btn-danger btn-sm" onclick="confirmDeletePost('${post.id}')">Deletar</button>
+    `;
         document.getElementById("posts").appendChild(postDiv);
       }
 
@@ -429,10 +465,17 @@
       }
 
       function confirmDeletePost(id) {
-        if (confirm("Tem certeza que deseja deletar esta postagem?")) {
-          deletePost(id);
-        }
+        postIdToDelete = id;
+        $('#deleteConfirmModal').modal('show');
       }
+
+      document.getElementById('confirmDeleteButton').addEventListener('click', async () => {
+        if (postIdToDelete) {
+          await deletePost(postIdToDelete);
+          $('#deleteConfirmModal').modal('hide');
+          postIdToDelete = null;
+        }
+      });
 
       async function openEditModal(id) {
         currentEditId = id;
@@ -479,8 +522,6 @@
           fetchPosts();
           $("#editModal").modal("hide");
         });
-
-      fetchPosts();
     </script>
     <footer class="text-center mt-5">
       <p>&copy; 2023 Sistema de Postagens. Todos os direitos reservados.</p>

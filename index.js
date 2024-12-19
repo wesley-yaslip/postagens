@@ -69,6 +69,11 @@ app.get('/all-posts', (req, res) => {
 // Rota para criar uma nova postagem
 app.post('/posts', (req, res) => {
     const { title, content, seoTitle, seoDescription, seoKeywords, categories: postCategories } = req.body;
+
+    if (!title || !content || !seoTitle || !seoDescription || !seoKeywords || postCategories.length === 0) {
+        return res.status(400).json({ message: "Todos os campos são obrigatórios." });
+    }
+
     const newPost = { 
         id: generateId(), 
         title, 
