@@ -6,17 +6,17 @@ const app = express();
 app.use(express.json());
 
 // Serve static files from the "posts" directory
-app.use('/posts', express.static(path.join(__dirname, 'posts')));
+app.use('/posts', express.static(path.join(__dirname, '../posts')));
 
 let posts = [];
 let categories = ["uncategorized"];
 
 // Load existing posts from the "posts" directory
 function loadPosts() {
-    const postFiles = fs.readdirSync(path.join(__dirname, 'posts'));
+    const postFiles = fs.readdirSync(path.join(__dirname, '../posts'));
     postFiles.forEach(file => {
         const postId = file.split('-')[1].split('.')[0];
-        const postHtml = fs.readFileSync(path.join(__dirname, 'posts', file), 'utf-8');
+        const postHtml = fs.readFileSync(path.join(__dirname, '../posts', file), 'utf-8');
         const titleMatch = postHtml.match(/<h1>(.*?)<\/h1>/);
         const contentMatch = postHtml.match(/<p>(.*?)<\/p>/);
         const seoTitleMatch = postHtml.match(/<title>(.*?)<\/title>/);
@@ -58,12 +58,12 @@ function sanitizeTitle(title) {
 
 // Rota para servir o arquivo HTML
 app.get('/', (req, res) => {
-    res.sendFile(path.join(__dirname, 'index.html'));
+    res.sendFile(path.join(__dirname, '../public/index.html'));
 });
 
 // Rota para servir o arquivo HTML de todas as postagens
 app.get('/all-posts', (req, res) => {
-    res.sendFile(path.join(__dirname, 'all-posts.html'));
+    res.sendFile(path.join(__dirname, '../public/all-posts.html'));
 });
 
 // Rota para criar uma nova postagem
@@ -115,7 +115,7 @@ app.post('/posts', (req, res) => {
     </body>
     </html>
     `;
-    fs.writeFileSync(path.join(__dirname, 'posts', `${fileName}-${newPost.id}.html`), postHtml, 'utf8');
+    fs.writeFileSync(path.join(__dirname, '../posts', `${fileName}-${newPost.id}.html`), postHtml, 'utf8');
 
     res.status(201).json(newPost);
 });
@@ -182,11 +182,11 @@ app.put('/posts/:id', (req, res) => {
         </body>
         </html>
         `;
-        fs.writeFileSync(path.join(__dirname, 'posts', `${newFileName}.html`), postHtml, 'utf8');
+        fs.writeFileSync(path.join(__dirname, '../posts', `${newFileName}.html`), postHtml, 'utf8');
 
         // Remove old file if the title has changed
         if (oldFileName !== newFileName) {
-            fs.unlinkSync(path.join(__dirname, 'posts', `${oldFileName}.html`));
+            fs.unlinkSync(path.join(__dirname, '../posts', `${oldFileName}.html`));
         }
 
         res.json(post);
@@ -202,7 +202,7 @@ app.delete('/posts/:id', (req, res) => {
     if (post) {
         const fileName = sanitizeTitle(post.title) + '-' + post.id;
         posts = posts.filter(p => p.id != id);
-        fs.unlinkSync(path.join(__dirname, 'posts', `${fileName}.html`));
+        fs.unlinkSync(path.join(__dirname, '../posts', `${fileName}.html`));
         res.status(204).send();
     } else {
         res.status(404).json({ message: 'Postagem não encontrada' });
@@ -214,7 +214,4 @@ app.get('/categories', (req, res) => {
     res.json(categories);
 });
 
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
-    console.log(`Server is running on port ${PORT}`);
-});
+module.exports = app;
