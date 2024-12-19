@@ -41,6 +41,14 @@
         background-color: #23282d;
         border-color: #23282d;
       }
+      .select2-container--default .select2-selection--multiple {
+        height: auto;
+        min-height: 38px;
+      }
+      .select2-container--default .select2-selection--multiple .select2-selection__rendered {
+        display: flex;
+        flex-wrap: wrap;
+      }
     </style>
   </head>
   <body class="container mt-5">
@@ -104,10 +112,10 @@
               </div>
               <div class="form-group">
                 <label for="categories">Categorias</label>
-                <div class="">
+                <div class="d-flex w-100">
                   <select
                     id="categories"
-                    class="form-control w-50"
+                    class="form-control"
                     multiple="multiple"
                   >
                     <option value="uncategorized" selected>
@@ -281,10 +289,12 @@
         $("#categories").select2({
           tags: true,
           tokenSeparators: [",", " "],
+          width: '100%' // Ensure the select box takes full width
         });
         $("#editCategories").select2({
           tags: true,
           tokenSeparators: [",", " "],
+          width: '100%' // Ensure the select box takes full width
         });
         loadCategories();
       });
@@ -294,6 +304,8 @@
           .then((response) => response.json())
           .then((data) => {
             categories = data;
+            $("#categories").empty(); // Clear existing options
+            $("#editCategories").empty(); // Clear existing options
             data.forEach((category) => {
               const option = new Option(category, category, false, false);
               $("#categories").append(option).trigger("change");
@@ -301,6 +313,10 @@
             });
           });
       }
+
+      $('#createPostModal').on('show.bs.modal', function () {
+        loadCategories(); // Load categories when the modal is shown
+      });
 
       function addCategory() {
         const newCategory = document.getElementById("newCategory").value.trim();
